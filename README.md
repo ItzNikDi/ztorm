@@ -26,7 +26,7 @@ Existing drivers live in separate packages so only what you need is pulled in.
 
 ```shell
 zig fetch --save "git+https://github.com/ItzNikDi/ztorm.git#main"
-zig fetch --save "git+https://github.com/ItzNikDi/ztorm_sqlite.git#main"
+zig fetch --save "git+https://github.com/ItzNikDi/ztorm_sqlite.git#main" # or whichever driver chosen
 ```
 
 ### 2. Wire up `build.zig`
@@ -40,20 +40,20 @@ const ztorm = b.dependency("ztorm", .{
 const ztorm_sqlite = b.dependency("ztorm_sqlite", .{
     .target = target,
     .optimize = optimize,
-});
+}); // or the driver of choice
 
 exe.root_module.addImport("ztorm", ztorm.module("ztorm"));
-exe.root_module.addImport("ztorm_sqlite", ztorm_sqlite.module("ztorm_sqlite"));
+exe.root_module.addImport("ztorm_sqlite", ztorm_sqlite.module("ztorm_sqlite")); // same thing here
 ```
 
 ### 3. Define a model
 
 ```zig
 const Food = struct {
-    pub const table_name  = "foods";
+    pub const table_name = "foods";
     pub const primary_key = ztorm.PrimaryKey.auto;
-    id:    i64,
-    name:  []const u8,
+    id: i64,
+    name: []const u8,
     flavor: []const u8,
 };
 const FoodModel = ztorm.Model(Food);
@@ -62,15 +62,16 @@ const FoodModel = ztorm.Model(Food);
 ### 4. Open a connection and query
 
 ```zig
-const ztorm  = @import("ztorm");
+const ztorm = @import("ztorm");
 const zt_sqlite = @import("ztorm_sqlite");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
-    var db = ztorm.DB(ztorm.dialect.SQLite).init(
-        try zt_sqlite.open(allocator, "food_app.db"),
-    );
+    const driver = try zt_sqlite.open(allocator, "food_app.db");
+    defer driver.close();
+    
+    var db = ztorm.DB(ztorm.dialect.SQLite).init(driver);
     defer db.close();
 
     // DDL — ztorm does not run migrations as of now
@@ -81,8 +82,8 @@ pub fn main(init: std.process.Init) !void {
     );
 
     try db.insert(FoodModel, allocator, .{
-        .id    = 0,           // ignored — primary_key is .auto
-        .name  = "pineapple",
+        .id = 0, // ignored — primary_key is .auto
+        .name = "pineapple",
         .flavor = "oddly specific",
     });
 
@@ -102,15 +103,15 @@ pub fn main(init: std.process.Init) !void {
 ```zig
 const Article = struct {
     // not a hard requirement - maps to a SQL table name, will default to @typeName(@This());
-    pub const table_name  = "articles";
+    pub const table_name = "articles";
 
     // optional: defaults to .auto if an `id` field exists, otherwise .none;
     pub const primary_key = ztorm.PrimaryKey.auto;
 
-    id:      i64,
-    title:   []const u8,
-    body:    []const u8,
-    draft:   bool,
+    id: i64,
+    title: []const u8,
+    body: []const u8,
+    draft: bool,
 };
 ```
 
@@ -165,9 +166,9 @@ pub fn open(allocator: std.mem.Allocator, ...) !ztorm.Driver {
     // allocate your context, open the connection
     return ztorm.Driver{
         .executeFn = execute,
-        .queryFn   = query,
-        .closeFn   = close,
-        .ctx       = ctx,
+        .queryFn = query,
+        .closeFn = close,
+        .ctx = ctx,
     };
 }
 ```

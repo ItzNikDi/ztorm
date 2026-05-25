@@ -112,6 +112,11 @@ pub fn DB(comptime D: type) type {
 
         /// Executes a raw SQL string with no result mapping.
         /// Use for DDL, migrations, or anything ztorm can't express yet.
+        ///
+        /// WARNING: never interpolate user-supplied input into `s` directly.
+        ///
+        /// Use the `params` slice for all user-supplied values - they are
+        /// bound via prepared statements and are safe from SQL injection.
         pub fn exec(
             self: Self,
             s: []const u8,
@@ -122,6 +127,11 @@ pub fn DB(comptime D: type) type {
 
         /// Executes a raw SQL query and returns unmapped Rows.
         /// Caller must call rows.close() when done.
+        ///
+        /// WARNING: never interpolate user-supplied input into `s` directly.
+        ///
+        /// Use the `params` slice for all user-supplied values - they are
+        /// bound via prepared statements and are safe from SQL injection.
         pub fn rawQuery(
             self: Self,
             s: []const u8,
