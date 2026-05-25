@@ -23,17 +23,13 @@ pub fn DB(comptime D: type) type {
             return .{ .driver = driver };
         }
 
-        pub fn close(self: Self) void {
-            self.driver.close();
-        }
-
         // -- Queries --
 
         /// Fetches all rows from the model's table.
         ///
         /// Caller owns the returned slice — free with `allocator.free()`.
         pub fn findAll(
-            self: Self,
+            self: *Self,
             comptime M: type,
             allocator: Allocator,
         ) ![]M.Schema {
@@ -54,7 +50,7 @@ pub fn DB(comptime D: type) type {
         /// Fetches a single row by primary key.
         /// Returns null if no row matched.
         pub fn findById(
-            self: Self,
+            self: *Self,
             comptime M: type,
             id: anytype,
         ) !?M.Schema {
@@ -73,7 +69,7 @@ pub fn DB(comptime D: type) type {
 
         /// Inserts a new row. For `auto` primary key models, `id` is ignored.
         pub fn insert(
-            self: Self,
+            self: *Self,
             comptime M: type,
             allocator: Allocator,
             value: M.Schema,
@@ -86,7 +82,7 @@ pub fn DB(comptime D: type) type {
 
         /// Updates an existing row matched by primary key.
         pub fn update(
-            self: Self,
+            self: *Self,
             comptime M: type,
             allocator: Allocator,
             value: M.Schema,
@@ -99,7 +95,7 @@ pub fn DB(comptime D: type) type {
 
         /// Deletes a row by primary key.
         pub fn deleteById(
-            self: Self,
+            self: *Self,
             comptime M: type,
             id: anytype,
         ) !void {
@@ -118,7 +114,7 @@ pub fn DB(comptime D: type) type {
         /// Use the `params` slice for all user-supplied values - they are
         /// bound via prepared statements and are safe from SQL injection.
         pub fn exec(
-            self: Self,
+            self: *Self,
             s: []const u8,
             params: []const driver_mod.Param,
         ) !void {
@@ -133,7 +129,7 @@ pub fn DB(comptime D: type) type {
         /// Use the `params` slice for all user-supplied values - they are
         /// bound via prepared statements and are safe from SQL injection.
         pub fn rawQuery(
-            self: Self,
+            self: *Self,
             s: []const u8,
             params: []const driver_mod.Param,
         ) !driver_mod.Rows {

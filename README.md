@@ -72,7 +72,6 @@ pub fn main(init: std.process.Init) !void {
     defer driver.close();
     
     var db = ztorm.DB(ztorm.dialect.SQLite).init(driver);
-    defer db.close();
 
     // DDL — ztorm does not run migrations as of now
     try db.exec(
