@@ -68,7 +68,7 @@ const zt_sqlite = @import("ztorm_sqlite");
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
 
-    var db = ztorm.DB(ztorm.dialects.SQLite).init(
+    var db = ztorm.DB(ztorm.dialect.SQLite).init(
         try zt_sqlite.open(allocator, "food_app.db"),
     );
     defer db.close();
@@ -90,7 +90,7 @@ pub fn main(init: std.process.Init) !void {
     defer allocator.free(foods);
 
     for (foods) |f| {
-        std.debug.print("{s} tastes {s}\n", .{ u.name, u.flavor });
+        std.debug.print("{s} tastes {s}\n", .{ f.name, f.flavor });
     }
 }
 ```
